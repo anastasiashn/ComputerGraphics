@@ -18,6 +18,19 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DisplayWin32.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GameComponent.cpp" />
+    <ClCompile Include="RectangleComponent.cpp" />
+    <ClCompile Include="startup.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DisplayWin32.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="GameComponent.h" />
+    <ClInclude Include="RectangleComponent.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -129,12 +142,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="MySuper3DApp.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\MyVeryFirstShader.hlsl" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
