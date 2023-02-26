@@ -4,11 +4,14 @@
 class RectangleComponent : public GameComponent
 {
 public:
-    RectangleComponent();
+    RectangleComponent(float x, float y);
+   
     virtual void initialize(Game* game) override;
     virtual void draw() override;
 
 private:
+    float x;
+    float y;
     ID3D11InputLayout* layout;
     ID3D11PixelShader* pixelShader;
     ID3DBlob* pixelShaderByteCode;

@@ -112,8 +112,13 @@ void Game::prepareFrame()
 	viewport.TopLeftY = 0;
 	viewport.MinDepth = 0;
 	viewport.MaxDepth = 1.0f;
-
+	
 	context->RSSetViewports(1, &viewport);
+	
+	context->OMSetRenderTargets(1, &renderView, nullptr);
+
+	float color[] = { totalTime, 0.1f, 0.1f, 1.0f };
+	context->ClearRenderTargetView(renderView, color);
 }
 
 void Game::exit()
@@ -169,12 +174,7 @@ float Game::updateInterval(int& frameCount) {
 
 void Game::endFrame()
 {
-	context->OMSetRenderTargets(1, &renderView, nullptr);
-
-	float color[] = { totalTime, 0.1f, 0.1f, 1.0f };
-	context->ClearRenderTargetView(renderView, color);
-
-	context->DrawIndexed(6, 0, 0);
+	
 
 	context->OMSetRenderTargets(0, nullptr, nullptr);
 

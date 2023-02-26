@@ -3,8 +3,10 @@
 
 #include "RectangleComponent.h"
 
-RectangleComponent::RectangleComponent()
+RectangleComponent::RectangleComponent(float x, float y)
 {
+	this->x = x;
+	this->y = y;
 	GameComponent::GameComponent();
 }
 
@@ -90,10 +92,10 @@ void RectangleComponent::initialize(Game* game)
 		&layout);
 
 	DirectX::XMFLOAT4 points[8] = {
-		DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-		DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		DirectX::XMFLOAT4(0.5f + x, 0.5f + y, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+		DirectX::XMFLOAT4(-0.5f + x, -0.5f + y, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+		DirectX::XMFLOAT4(0.5f + x, -0.5f + y, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+		DirectX::XMFLOAT4(-0.5f + x, 0.5f + y, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	};
 
 
@@ -140,4 +142,5 @@ void RectangleComponent::draw()
 	game->context->IASetVertexBuffers(0, 1, &vertexBuffer, strides, offsets);
 	game->context->VSSetShader(vertexShader, nullptr, 0);
 	game->context->PSSetShader(pixelShader, nullptr, 0);
+	game->context->DrawIndexed(6, 0, 0);
 }
