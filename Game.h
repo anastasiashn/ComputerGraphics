@@ -9,14 +9,16 @@
 #include <vector>
 
 #include "GameComponent.h"
-#include "DisplayWin32.h"
+#include "WindowContainer.h"
+#include "CollisionBox.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "DirectXTK.lib")
 
-class Game
+class Game : WindowContainer
 {
     public:
         ID3D11Texture2D* backBuffer;
@@ -27,22 +29,23 @@ class Game
         std::chrono::steady_clock::time_point startTime;
         IDXGISwapChain* swapChain;
         float totalTime;
-        DisplayWin32 display;
         ID3D11RasterizerState* rastState;
-    
-        Game(
+
+        void initialize(
             LPCWSTR name,
             int clientWidth,
             int clientHeight,
             std::vector<GameComponent*> components);
         void exit();
         void run();
+        DisplayWin32 getDisplay();
+        CollisionType checkWindowCollision(CollisionBox* collisionBox);
+        std::vector<GameComponent*> getComponentsByType(std::string type);
     
     private:
         bool isExitRequested = false;
         std::vector<GameComponent*> components;
     
-        void initialize();
         void destroyResources();
         void createBackBuffer();
         void prepareFrame();

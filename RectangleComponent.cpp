@@ -3,10 +3,10 @@
 
 #include "RectangleComponent.h"
 
-RectangleComponent::RectangleComponent(float x, float y)
+RectangleComponent::RectangleComponent(float x_offset, float y_offset)
 {
-	this->x = x;
-	this->y = y;
+	this->x_offset = x_offset;
+	this->y_offset = y_offset;
 	GameComponent::GameComponent();
 }
 
@@ -35,7 +35,7 @@ void RectangleComponent::initialize(Game* game)
 		// If there was  nothing in the error message then it simply could not find the shader file itself.
 		else
 		{
-			MessageBox(game->display.hWnd, L"MyVeryFirstShader.hlsl", L"Missing Shader File", MB_OK);
+			MessageBox(game->getDisplay().hWnd, L"MyVeryFirstShader.hlsl", L"Missing Shader File", MB_OK);
 		}
 
 		return;
@@ -92,10 +92,10 @@ void RectangleComponent::initialize(Game* game)
 		&layout);
 
 	DirectX::XMFLOAT4 points[8] = {
-		DirectX::XMFLOAT4(0.5f + x, 0.5f + y, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(-0.5f + x, -0.5f + y, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-		DirectX::XMFLOAT4(0.5f + x, -0.5f + y, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-		DirectX::XMFLOAT4(-0.5f + x, 0.5f + y, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+		DirectX::XMFLOAT4(x_offset + 0.5f, y_offset + 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+		DirectX::XMFLOAT4(x_offset + -0.5f, y_offset + -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+		DirectX::XMFLOAT4(x_offset + 0.5f, y_offset + -0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+		DirectX::XMFLOAT4(x_offset + -0.5f, y_offset + 0.5f, 0.5f, 1.0f),	DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
 	};
 
 
@@ -142,5 +142,6 @@ void RectangleComponent::draw()
 	game->context->IASetVertexBuffers(0, 1, &vertexBuffer, strides, offsets);
 	game->context->VSSetShader(vertexShader, nullptr, 0);
 	game->context->PSSetShader(pixelShader, nullptr, 0);
+
 	game->context->DrawIndexed(6, 0, 0);
 }

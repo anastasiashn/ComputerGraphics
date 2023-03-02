@@ -1,14 +1,18 @@
 #include <iostream>
 #include "Game.h"
-#include "RectangleComponent.h"
+#include "PongCircleComponent.h"
+#include "PongTileComponent.h"
+#include "ScoreComponent.h"
 
 int main() {
-    RectangleComponent* rectangleComponent = new RectangleComponent(0,0);
-    RectangleComponent* rectangleComponent2 = new RectangleComponent(0.1,0.1);
+    srand((unsigned)time(NULL));
     std::vector<GameComponent*> gameComponents;
-    gameComponents.push_back(rectangleComponent);
-    gameComponents.push_back(rectangleComponent2);
+    gameComponents.push_back(new PongCircleComponent());
+    gameComponents.push_back(new PongTileComponent(true));
+    gameComponents.push_back(new PongTileComponent(false));
+    gameComponents.push_back(new ScoreComponent());
 
-    Game game(L"Test game", 800, 800, gameComponents);
+    Game game;
+    game.initialize(L"Test game", 500, 500, gameComponents);
     game.run();
 }

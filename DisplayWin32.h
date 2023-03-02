@@ -1,5 +1,8 @@
 #pragma once
-#include <windows.h>
+#include "Keyboard.h"
+#include <Windows.h>
+
+class WindowContainer;
 
 class DisplayWin32
 {
@@ -12,7 +15,7 @@ public:
     WNDCLASSEX wc;
     LPCWSTR applicationName;
 
-    DisplayWin32(LPCWSTR applicationName, int clientWidth, int clientHeight);
+    void initialize(WindowContainer* windowContainer, LPCWSTR applicationName, int clientWidth, int clientHeight);
 private:
     void initializeWc();
 };

@@ -2,19 +2,15 @@
 
 #include "Game.h"
 
-Game::Game(
+void Game::initialize(
 	LPCWSTR name,
 	int clientWidth,
 	int clientHeight,
 	std::vector<GameComponent*> components)
-	: display(name, clientWidth, clientHeight)
 {
 	this->components = components;
-	initialize();
-}
+	this->display.initialize(this, name, clientWidth, clientHeight);
 
-void Game::initialize()
-{
 	D3D_FEATURE_LEVEL featureLevel[] = { D3D_FEATURE_LEVEL_11_1 };
 
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
@@ -86,6 +82,11 @@ void Game::run()
 	}
 }
 
+DisplayWin32 Game::getDisplay()
+{
+	return this->display;
+}
+
 void Game::messageHandler()
 {
 	MSG msg = {};
@@ -112,12 +113,12 @@ void Game::prepareFrame()
 	viewport.TopLeftY = 0;
 	viewport.MinDepth = 0;
 	viewport.MaxDepth = 1.0f;
-	
+
 	context->RSSetViewports(1, &viewport);
-	
+
 	context->OMSetRenderTargets(1, &renderView, nullptr);
 
-	float color[] = { totalTime, 0.1f, 0.1f, 1.0f };
+	float color[] = { 0, 0, 0, 0 };
 	context->ClearRenderTargetView(renderView, color);
 }
 
@@ -142,10 +143,32 @@ void Game::draw()
 	}
 }
 
+
+CollisionType Game::checkWindowCollision(CollisionBox* collisionBox)
+{
+	if (collisionBox->getRight().getMaxX() >= 1) {
+		return CollisionType::widowRight;
+	}
+
+	if (collisionBox->getLeft().getMinX() <= -1) {
+		return CollisionType::windowLeft;
+	}
+
+	if (collisionBox->getTop().getMaxY() >= 1) {
+		return CollisionType::windowTop;
+	}
+
+	if (collisionBox->getBottom().getMinY() <= -1) {
+		return CollisionType::windowBottom;
+	}
+
+	return CollisionType::none;
+}
+
 void Game::update(float deltaTime) {
 	for (auto& component : components)
 	{
-		component->update(deltaTime);
+		component->update(deltaTime, keyboard);
 	}
 }
 
@@ -174,9 +197,19 @@ float Game::updateInterval(int& frameCount) {
 
 void Game::endFrame()
 {
-	
-
 	context->OMSetRenderTargets(0, nullptr, nullptr);
 
 	swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+}
+
+std::vector<GameComponent*> Game::getComponentsByType(std::string type) {
+	std::vector<GameComponent*> result;
+	for (auto& component : components)
+	{
+		if (component->getType() == type) {
+			result.push_back(component);
+		}
+	}
+
+	return result;
 }

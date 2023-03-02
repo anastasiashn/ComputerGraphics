@@ -19,17 +19,36 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CollisionBox.cpp" />
+    <ClCompile Include="CollisionLine.cpp" />
     <ClCompile Include="DisplayWin32.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameComponent.cpp" />
+    <ClCompile Include="Keyboard.cpp" />
+    <ClCompile Include="KeyboardEvent.cpp" />
+    <ClCompile Include="PongCircleComponent.cpp" />
+    <ClCompile Include="PongTileComponent.cpp" />
     <ClCompile Include="RectangleComponent.cpp" />
+    <ClCompile Include="ScoreComponent.cpp" />
     <ClCompile Include="startup.cpp" />
+    <ClCompile Include="WindowContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CollisionBox.h" />
+    <ClInclude Include="CollisionException.h" />
+    <ClInclude Include="CollisionLine.h" />
+    <ClInclude Include="CollisionType.h" />
     <ClInclude Include="DisplayWin32.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameComponent.h" />
+    <ClInclude Include="Keyboard.h" />
+    <ClInclude Include="KeyboardEvent.h" />
+    <ClInclude Include="KeyboardEventType.h" />
+    <ClInclude Include="PongCircleComponent.h" />
+    <ClInclude Include="PongTileComponent.h" />
     <ClInclude Include="RectangleComponent.h" />
+    <ClInclude Include="ScoreComponent.h" />
+    <ClInclude Include="WindowContainer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -83,6 +102,22 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(SolutionDir)\Includes;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)libs\x86\Debug;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(SolutionDir)\Includes;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)libs\x86\Release;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir)\Includes;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)libs\x64\Debug;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)\Includes;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)libs\x64\Release;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>

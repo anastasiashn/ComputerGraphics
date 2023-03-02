@@ -1,28 +1,49 @@
 #include <iostream>
 
-#include "DisplayWin32.h"
+#include "WindowContainer.h"
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
+LRESULT CALLBACK HandleMsgRedirect(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	switch (umessage)
+	switch (uMsg)
 	{
-	case WM_KEYDOWN:
-	{
-		// If a key is pressed send it to the input object so it can record that state.
-		std::cout << "Key: " << static_cast<unsigned int>(wparam) << std::endl;
-
-		if (static_cast<unsigned int>(wparam) == 27) PostQuitMessage(0);
+		// All other messages
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
 		return 0;
-	}
+
 	default:
 	{
-		return DefWindowProc(hwnd, umessage, wparam, lparam);
+		// retrieve ptr to window class
+		WindowContainer* const pWindow = reinterpret_cast<WindowContainer*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+		// forward message to window class handler
+		return pWindow->WindowProc(hwnd, uMsg, wParam, lParam);
 	}
 	}
 }
 
+LRESULT CALLBACK HandleMessageSetup(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+	{
+	case WM_NCCREATE:
+	{
+		const CREATESTRUCTW* const pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
+		WindowContainer* pWindow = reinterpret_cast<WindowContainer*>(pCreate->lpCreateParams);
+		if (pWindow == nullptr) //Sanity check
+		{
+			exit(-1);
+		}
 
-DisplayWin32::DisplayWin32(LPCWSTR applicationName, int clientWidth, int clientHeight)
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWindow));
+		SetWindowLongPtr(hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(HandleMsgRedirect));
+		return pWindow->WindowProc(hwnd, uMsg, wParam, lParam);
+	}
+	default:
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	}
+}
+
+void DisplayWin32::initialize(WindowContainer* windowContainer, LPCWSTR applicationName, int clientWidth, int clientHeight)
 {
 	this->applicationName = applicationName;
 	this->clientWidth = clientWidth;
@@ -30,8 +51,6 @@ DisplayWin32::DisplayWin32(LPCWSTR applicationName, int clientWidth, int clientH
 	this->hInstance = GetModuleHandle(nullptr);
 
 	initializeWc();
-
-	RegisterClassEx(&this->wc);
 
 	RECT windowRect = { 0, 0, static_cast<LONG>(clientWidth), static_cast<LONG>(clientHeight) };
 	AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
@@ -46,7 +65,7 @@ DisplayWin32::DisplayWin32(LPCWSTR applicationName, int clientWidth, int clientH
 		posX, posY,
 		windowRect.right - windowRect.left,
 		windowRect.bottom - windowRect.top,
-		nullptr, nullptr, hInstance, nullptr);
+		nullptr, nullptr, hInstance, windowContainer);
 
 	ShowWindow(this->hWnd, SW_SHOW);
 	SetForegroundWindow(this->hWnd);
@@ -57,7 +76,7 @@ DisplayWin32::DisplayWin32(LPCWSTR applicationName, int clientWidth, int clientH
 
 void DisplayWin32::initializeWc() {
 	this->wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	this->wc.lpfnWndProc = WndProc;
+	this->wc.lpfnWndProc = HandleMessageSetup;
 	this->wc.cbClsExtra = 0;
 	this->wc.cbWndExtra = 0;
 	this->wc.hInstance = hInstance;
@@ -68,4 +87,6 @@ void DisplayWin32::initializeWc() {
 	this->wc.lpszMenuName = nullptr;
 	this->wc.lpszClassName = applicationName;
 	this->wc.cbSize = sizeof(WNDCLASSEX);
+	RegisterClassEx(&this->wc);
 }
+
