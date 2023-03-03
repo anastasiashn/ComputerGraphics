@@ -79,6 +79,13 @@ void Game::run()
 		update(deltaTime);
 		draw();
 		endFrame();
+		if (!componentsToAdd.empty()) {
+			for (auto& component : componentsToAdd)
+			{
+				components.push_back(component);
+			}
+			componentsToAdd.clear();
+		}
 	}
 }
 
@@ -169,7 +176,9 @@ void Game::update(float deltaTime) {
 	for (auto& component : components)
 	{
 		component->update(deltaTime, keyboard);
+
 	}
+	
 }
 
 float Game::updateInterval(int& frameCount) {
@@ -212,4 +221,9 @@ std::vector<GameComponent*> Game::getComponentsByType(std::string type) {
 	}
 
 	return result;
+}
+
+void Game::addComponent(GameComponent* newComponent)
+{
+	this->componentsToAdd.push_back(newComponent);
 }

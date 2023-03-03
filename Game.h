@@ -41,9 +41,11 @@ class Game : WindowContainer
         DisplayWin32 getDisplay();
         CollisionType checkWindowCollision(CollisionBox* collisionBox);
         std::vector<GameComponent*> getComponentsByType(std::string type);
+        void addComponent(GameComponent* newComponent);
     
     private:
         bool isExitRequested = false;
+        std::vector<GameComponent*> componentsToAdd;
         std::vector<GameComponent*> components;
     
         void destroyResources();

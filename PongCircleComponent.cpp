@@ -227,6 +227,9 @@ bool PongCircleComponent::handleCollision(float deltaTime) {
 			direction.x = -delta * 4;
 			lastTileCollisionTime = 0.2f;
 			speed = 80;
+			auto newC = new PongCircleComponent();
+			newC->initialize(this->game);
+			this->game->addComponent(newC);
 			return true;
 		}
 	}
