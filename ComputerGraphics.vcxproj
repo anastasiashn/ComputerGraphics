@@ -38,6 +38,7 @@
     <ClInclude Include="CollisionException.h" />
     <ClInclude Include="CollisionLine.h" />
     <ClInclude Include="CollisionType.h" />
+    <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="DisplayWin32.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameComponent.h" />

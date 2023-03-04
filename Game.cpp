@@ -46,12 +46,6 @@ void Game::initialize(
 
 	createBackBuffer();
 	device->CreateRenderTargetView(backBuffer, nullptr, &renderView);
-
-	for (auto& component : components)
-	{
-		component->initialize(this);
-	}
-
 	CD3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_NONE;
 	rastDesc.FillMode = D3D11_FILL_SOLID;
@@ -59,6 +53,12 @@ void Game::initialize(
 	device->CreateRasterizerState(&rastDesc, &rastState);
 
 	context->RSSetState(rastState);
+
+	for (auto& component : components)
+	{
+		component->initialize(this);
+	}
+
 }
 
 void Game::createBackBuffer()
@@ -82,6 +82,7 @@ void Game::run()
 		if (!componentsToAdd.empty()) {
 			for (auto& component : componentsToAdd)
 			{
+				component->initialize(this);
 				components.push_back(component);
 			}
 			componentsToAdd.clear();
@@ -173,12 +174,11 @@ CollisionType Game::checkWindowCollision(CollisionBox* collisionBox)
 }
 
 void Game::update(float deltaTime) {
+
 	for (auto& component : components)
 	{
 		component->update(deltaTime, keyboard);
-
 	}
-	
 }
 
 float Game::updateInterval(int& frameCount) {
@@ -223,7 +223,7 @@ std::vector<GameComponent*> Game::getComponentsByType(std::string type) {
 	return result;
 }
 
-void Game::addComponent(GameComponent* newComponent)
+void Game::addComponent(GameComponent* component)
 {
-	this->componentsToAdd.push_back(newComponent);
+	componentsToAdd.push_back(component);
 }

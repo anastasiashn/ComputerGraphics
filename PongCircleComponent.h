@@ -16,14 +16,18 @@ private:
     ID3DBlob* pixelShaderByteCode;
     ID3D11VertexShader* vertexShader;
     ID3DBlob* vertexShaderByteCode;
+    ID3D11Buffer* constantBuffer;
 
     ID3D11Buffer* indecesBuffer;
     ID3D11Buffer* vertexBuffer;
     UINT* strides;
     UINT* offsets;
 
-    int numberOfTriangles = 10;
-    int pixelSize = 20;
+    const int numberOfTriangles = 10;
+    const int pixelSize = 25;
+    const int initialspeed = 1;
+    const int speedAfterHit = 2;
+    int index = 0;
 
     DirectX::XMFLOAT4* points;
     int pointSize;
@@ -34,10 +38,11 @@ private:
     float lastTileCollisionTime = 0;
 
     DirectX::XMFLOAT2 direction = DirectX::XMFLOAT2(0.0f, 0.0f);
-    float speed = 30;
+    float speed;
     CollisionBox collisionBox;
 
-    void updatePoints(float deltaTime);
+    void updateCollizionBox();
+    void updateConstantBuffer();
     bool handleCollision(float deltaTime);
     void updateIndeces();
     float toPixelSize(float size, int screenSize, int pixel);

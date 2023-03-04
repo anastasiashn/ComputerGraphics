@@ -5,6 +5,7 @@
 #include "PongCircleComponent.h"
 #include "PongTileComponent.h"
 #include "ScoreComponent.h"
+#include "ConstantBuffer.h"
 
 float RandomFloat(float a, float b) {
 	float random = ((float)rand()) / (float)RAND_MAX;
@@ -21,9 +22,12 @@ bool RandomBool() {
 	return RandomNumber(0, 100) <= 50;
 }
 
+float count = 0;
 
 PongCircleComponent::PongCircleComponent() : collisionBox()
 {
+	index = count;
+	count++;
 	GameComponent::GameComponent();
 	collisionBox.bottomLeftPoint = DirectX::XMFLOAT2(0, 0);
 	collisionBox.width = 0;
@@ -35,7 +39,7 @@ void PongCircleComponent::initialize(Game* game)
 	GameComponent::initialize(game);
 
 	ID3DBlob* errorVertexCode = nullptr;
-	auto res = D3DCompileFromFile(L"./Shaders/MyVeryFirstShader.hlsl",
+	auto res = D3DCompileFromFile(L"./Shaders/VertexShader.hlsl",
 		nullptr /*macros*/,
 		nullptr /*include*/,
 		"VSMain",
@@ -55,7 +59,7 @@ void PongCircleComponent::initialize(Game* game)
 		// If there was  nothing in the error message then it simply could not find the shader file itself.
 		else
 		{
-			MessageBox(game->getDisplay().hWnd, L"MyVeryFirstShader.hlsl", L"Missing Shader File", MB_OK);
+			MessageBox(game->getDisplay().hWnd, L"VertexShader.hlsl", L"Missing Shader File", MB_OK);
 		}
 
 		return;
@@ -65,7 +69,7 @@ void PongCircleComponent::initialize(Game* game)
 
 	ID3DBlob* errorPixelCode;
 	res = D3DCompileFromFile(
-		L"./Shaders/MyVeryFirstShader.hlsl",
+		L"./Shaders/PixelShader.hlsl",
 		Shader_Macros /*macros*/,
 		nullptr /*include*/,
 		"PSMain",
@@ -114,26 +118,20 @@ void PongCircleComponent::initialize(Game* game)
 	strides = new UINT{ sizeof(DirectX::XMFLOAT4) * 2 };
 	offsets = new UINT{ 0 };
 
-	updatePoints(0);
-	reset(RandomBool());
-}
+	pointSize = (numberOfTriangles + 1) * 2;
+	points = (DirectX::XMFLOAT4*)malloc(sizeof(DirectX::XMFLOAT4) * pointSize);
 
-void PongCircleComponent::draw()
-{
-	game->context->IASetInputLayout(layout);
-	game->context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	game->context->IASetIndexBuffer(indecesBuffer, DXGI_FORMAT_R32_UINT, 0);
-	game->context->IASetVertexBuffers(0, 1, &vertexBuffer, strides, offsets);
-	game->context->VSSetShader(vertexShader, nullptr, 0);
-	game->context->PSSetShader(pixelShader, nullptr, 0);
+	points[0] = toPixelSize(0.0f, 0.0f, pixelSize);
+	points[1] = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	game->context->DrawIndexed(indecesCount, 0, 0);
-}
+	float deltaTheta = 2 * M_PI / numberOfTriangles;
+	for (int i = 0; i < numberOfTriangles; i++) {
+		float theta = i * deltaTheta;
+		int index = i * 2 + 2;
 
-void PongCircleComponent::update(float deltaTime, Keyboard keyboard)
-{
-	updatePoints(deltaTime);
-	handleCollision(deltaTime);
+		points[index] = toPixelSize(cos(theta), sin(theta), pixelSize);
+		points[index + 1] = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	}
 
 	D3D11_BUFFER_DESC vertexBufDesc = {};
 	vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -151,32 +149,64 @@ void PongCircleComponent::update(float deltaTime, Keyboard keyboard)
 	game->device->CreateBuffer(&vertexBufDesc, &vertexData, &vertexBuffer);
 
 	updateIndeces();
+
+	updateCollizionBox();
+	reset(RandomBool());
 }
 
-void PongCircleComponent::updatePoints(float deltaTime) 
+void PongCircleComponent::draw()
+{
+	//std::cout << index << ": (" << collisionBox.bottomLeftPoint.x << " ; " << collisionBox.bottomLeftPoint.y << " )" << " w = " << collisionBox.width << " h = " << collisionBox.height << " s = " << speed << std::endl;
+	game->context->IASetInputLayout(layout);
+	game->context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	game->context->IASetIndexBuffer(indecesBuffer, DXGI_FORMAT_R32_UINT, 0);
+	game->context->IASetVertexBuffers(0, 1, &vertexBuffer, strides, offsets);
+	game->context->VSSetConstantBuffers(0u, 1u, &constantBuffer);
+	game->context->VSSetShader(vertexShader, nullptr, 0);
+	game->context->PSSetShader(pixelShader, nullptr, 0);
+
+	game->context->DrawIndexed(indecesCount, 0, 0);
+}
+
+void PongCircleComponent::update(float deltaTime, Keyboard keyboard)
 {
 	x_offset += direction.x * deltaTime * speed;
 	y_offset += direction.y * deltaTime * speed;
 
-	pointSize = (numberOfTriangles + 1) * 2;
-	points = (DirectX::XMFLOAT4*)malloc(sizeof(DirectX::XMFLOAT4) * pointSize);
+	updateCollizionBox();
+	handleCollision(deltaTime);
+	updateConstantBuffer();
+}
 
-	points[0] = toPixelSize(0.0f + x_offset, 0.0f + y_offset, pixelSize);
-	points[1] = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-
-	float deltaTheta = 2 * M_PI / numberOfTriangles;
-	for (int i = 0; i < numberOfTriangles; i++) {
-		float theta = i * deltaTheta;
-		int index = i * 2 + 2;
-
-		points[index] = toPixelSize(cos(theta) + x_offset, sin(theta) + y_offset, pixelSize);
-		points[index + 1] = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	}
+void PongCircleComponent::updateCollizionBox() 
+{
 	auto radius = points[2].x - points[0].x;
-	collisionBox.bottomLeftPoint.x = points[0].x - radius;
-	collisionBox.bottomLeftPoint.y = points[0].y - radius;
+	collisionBox.bottomLeftPoint.x = points[0].x - radius + x_offset;
+	collisionBox.bottomLeftPoint.y = points[0].y - radius + y_offset;
 	collisionBox.width = radius * 2;
 	collisionBox.height = radius * 2;
+}
+
+void PongCircleComponent::updateConstantBuffer() {
+	const ConstantBuffer cb =
+	{
+		{
+			DirectX::XMMatrixTranspose(
+				DirectX::XMMatrixTranslation(x_offset, y_offset, 0)
+			)
+		}
+	};
+
+	CD3D11_BUFFER_DESC cbd;
+	cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbd.Usage = D3D11_USAGE_DYNAMIC;
+	cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbd.MiscFlags = 0u;
+	cbd.ByteWidth = sizeof(cb);
+	cbd.StructureByteStride = 0u;
+	D3D11_SUBRESOURCE_DATA csd = {};
+	csd.pSysMem = &cb;
+	game->device->CreateBuffer(&cbd, &csd, &constantBuffer);
 }
 
 bool PongCircleComponent::handleCollision(float deltaTime) {
@@ -218,18 +248,15 @@ bool PongCircleComponent::handleCollision(float deltaTime) {
 		PongTileComponent* tileComponent = dynamic_cast<PongTileComponent*>(component);
 		auto tileCollisionBox = tileComponent->getCollisionBox();
 		auto tileCollisionType = tileCollisionBox.checkCollision(&collisionBox);
-		// if (tileCollisionType != CollisionType::none) {
 		if (tileCollisionType == tileComponent->topCollisionType) {
 			direction.y *= -1;
 			auto tileCenterX = tileCollisionBox.bottomLeftPoint.x + tileCollisionBox.width / 2;
 			auto circleCenterX = collisionBox.bottomLeftPoint.x + collisionBox.width / 2;
 			auto delta = tileCenterX - circleCenterX;
 			direction.x = -delta * 4;
-			lastTileCollisionTime = 0.2f;
-			speed = 80;
-			auto newC = new PongCircleComponent();
-			newC->initialize(this->game);
-			this->game->addComponent(newC);
+			lastTileCollisionTime = 1.0f;
+			speed = speedAfterHit;
+			this->game->addComponent(new PongCircleComponent());
 			return true;
 		}
 	}
@@ -281,7 +308,7 @@ std::string PongCircleComponent::getType()
 void PongCircleComponent::reset(bool directionToTop) {
 	x_offset = 0;
 	y_offset = 0;
-	speed = 20;
+	speed = initialspeed;
 	auto xDirection = RandomNumber(30, 80) / 100.0f;
 	auto yDirection = RandomNumber(30, 80) / 100.0f;
 	auto xNegative = RandomBool() ? -1 : 1;
