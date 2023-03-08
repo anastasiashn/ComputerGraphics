@@ -83,7 +83,7 @@ void Game::run()
 			for (auto& component : componentsToAdd)
 			{
 				component->initialize(this);
-				components.push_back(component);
+				components.insert(components.begin(), component);
 			}
 			componentsToAdd.clear();
 		}
@@ -226,4 +226,22 @@ std::vector<GameComponent*> Game::getComponentsByType(std::string type) {
 void Game::addComponent(GameComponent* component)
 {
 	componentsToAdd.push_back(component);
+}
+
+void Game::removeComponent(GameComponent* component)
+{
+	auto it = std::find(components.begin(), components.end(), component);
+	int index = 0;
+	if (it != components.end())
+	{
+		index = it - components.begin();
+	}
+	else {
+		index = -1;
+	}
+
+	if (index >= 0) {
+		components.erase(components.begin() + index);
+		component->destroyResources();
+	}
 }

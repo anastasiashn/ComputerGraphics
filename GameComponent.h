@@ -12,6 +12,7 @@ protected:
     Game* game = nullptr;
     float toPixelSize(float size, int screenSize, int pixel);
     DirectX::XMFLOAT4 toPixelSize(float x, float y, int pixel);
+    bool is_initialised = false;
 public:
     GameComponent();
     virtual void destroyResources();

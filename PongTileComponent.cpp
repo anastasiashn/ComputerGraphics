@@ -19,6 +19,10 @@ PongTileComponent::PongTileComponent(bool isUpTile)
 
 void PongTileComponent::initialize(Game* game)
 {
+	if (this->is_initialised) {
+		return;
+	}
+
 	GameComponent::initialize(game);
 
 	ID3DBlob* errorVertexCode = nullptr;

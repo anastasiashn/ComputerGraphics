@@ -8,6 +8,10 @@ ScoreComponent::ScoreComponent()
 
 void ScoreComponent::initialize(Game* game)
 {
+    if (this->is_initialised) {
+        return;
+    }
+
     GameComponent::initialize(game);
     spriteBatch = new DirectX::DX11::SpriteBatch(this->game->context);
     spriteFont = new DirectX::DX11::SpriteFont(this->game->device.Get(), L"Data\\Fonts\\comic_sand_ms_16.spritefont");

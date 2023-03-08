@@ -42,6 +42,7 @@ class Game : WindowContainer
         CollisionType checkWindowCollision(CollisionBox* collisionBox);
         std::vector<GameComponent*> getComponentsByType(std::string type);
         void addComponent(GameComponent* component);
+        void removeComponent(GameComponent* component);
     
     private:
         bool isExitRequested = false;

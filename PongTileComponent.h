@@ -40,7 +40,7 @@ private:
     unsigned char left_button;
     unsigned char right_button;
 
-    float speed = 1;
+    float speed = 2;
     CollisionBox collisionBox;
 
     void updateCollizionBox();

@@ -24,7 +24,7 @@ bool RandomBool() {
 
 float count = 0;
 
-PongCircleComponent::PongCircleComponent() : collisionBox()
+PongCircleComponent::PongCircleComponent(bool temporary_circle) : collisionBox()
 {
 	index = count;
 	count++;
@@ -32,10 +32,15 @@ PongCircleComponent::PongCircleComponent() : collisionBox()
 	collisionBox.bottomLeftPoint = DirectX::XMFLOAT2(0, 0);
 	collisionBox.width = 0;
 	collisionBox.height = 0;
+	this->temporary_circle = temporary_circle;
 }
 
 void PongCircleComponent::initialize(Game* game)
 {
+	if (this->is_initialised) {
+		return;
+	}
+
 	GameComponent::initialize(game);
 
 	ID3DBlob* errorVertexCode = nullptr;
@@ -118,11 +123,23 @@ void PongCircleComponent::initialize(Game* game)
 	strides = new UINT{ sizeof(DirectX::XMFLOAT4) * 2 };
 	offsets = new UINT{ 0 };
 
+	auto color = temporary_circle
+		? DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)
+		: DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	updatePoints(color);
+
+	updateIndeces();
+
+	updateCollizionBox();
+	reset(RandomBool());
+}
+
+void PongCircleComponent::updatePoints(DirectX::XMFLOAT4 color) {
 	pointSize = (numberOfTriangles + 1) * 2;
 	points = (DirectX::XMFLOAT4*)malloc(sizeof(DirectX::XMFLOAT4) * pointSize);
 
 	points[0] = toPixelSize(0.0f, 0.0f, pixelSize);
-	points[1] = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	points[1] = color;
 
 	float deltaTheta = 2 * M_PI / numberOfTriangles;
 	for (int i = 0; i < numberOfTriangles; i++) {
@@ -130,7 +147,7 @@ void PongCircleComponent::initialize(Game* game)
 		int index = i * 2 + 2;
 
 		points[index] = toPixelSize(cos(theta), sin(theta), pixelSize);
-		points[index + 1] = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		points[index + 1] = color;
 	}
 
 	D3D11_BUFFER_DESC vertexBufDesc = {};
@@ -147,11 +164,6 @@ void PongCircleComponent::initialize(Game* game)
 	vertexData.SysMemSlicePitch = 0;
 
 	game->device->CreateBuffer(&vertexBufDesc, &vertexData, &vertexBuffer);
-
-	updateIndeces();
-
-	updateCollizionBox();
-	reset(RandomBool());
 }
 
 void PongCircleComponent::draw()
@@ -210,29 +222,55 @@ void PongCircleComponent::updateConstantBuffer() {
 }
 
 bool PongCircleComponent::handleCollision(float deltaTime) {
-	auto windowCollision = game->checkWindowCollision(&collisionBox);
-	if (windowCollision == CollisionType::windowLeft || windowCollision == CollisionType::widowRight) {
-		direction.x *= -1;
-		return true;
+	return handleHorizontalWindowCollision(deltaTime)
+		|| handleTileCollision(deltaTime)
+		|| handleVerticalWindowCollision(deltaTime);
+}
+
+bool PongCircleComponent::handleVerticalWindowCollision(float deltaTime) {
+	lastVerticalWindowCollisionTime = lastVerticalWindowCollisionTime - deltaTime >= 0 ? lastVerticalWindowCollisionTime - deltaTime : 0;
+	if (lastVerticalWindowCollisionTime > 0) {
+		return false;
 	}
-	if (windowCollision == CollisionType::windowTop || windowCollision == CollisionType::windowBottom) {
-		auto isBottomWin = windowCollision == CollisionType::windowTop;
-		auto scoreComponents = this->game->getComponentsByType("ScoreComponent");
-		if (!scoreComponents.empty()) {
-			for (auto& component : scoreComponents) {
-				ScoreComponent* scoreComponent = dynamic_cast<ScoreComponent*>(component);
-				if (isBottomWin) {
-					scoreComponent->addScore(1, 0);
-				}
-				else {
-					scoreComponent->addScore(0, 1);
-				}
+
+	auto windowCollision = game->checkWindowCollision(&collisionBox);
+	if (windowCollision != CollisionType::windowLeft && windowCollision != CollisionType::widowRight) {
+		return false;
+	}
+
+	lastVerticalWindowCollisionTime = disableCollisionTime;
+	direction.x *= -1;
+	return true;
+}
+
+bool PongCircleComponent::handleHorizontalWindowCollision(float deltaTime) {
+	auto windowCollision = game->checkWindowCollision(&collisionBox);
+	if (windowCollision != CollisionType::windowTop && windowCollision != CollisionType::windowBottom) {
+		return false;
+	}
+
+	auto isBottomWin = windowCollision == CollisionType::windowTop;
+	auto scoreComponents = this->game->getComponentsByType("ScoreComponent");
+	if (!scoreComponents.empty()) {
+		for (auto& component : scoreComponents) {
+			ScoreComponent* scoreComponent = dynamic_cast<ScoreComponent*>(component);
+			if (isBottomWin) {
+				scoreComponent->addScore(1, 0);
+			}
+			else {
+				scoreComponent->addScore(0, 1);
 			}
 		}
-		reset(isBottomWin);
-		return true;
 	}
-	
+	if (temporary_circle) {
+		game->removeComponent(this);
+	}
+
+	reset(isBottomWin);
+	return true;
+}
+
+bool PongCircleComponent::handleTileCollision(float deltaTime) {
 	lastTileCollisionTime = lastTileCollisionTime - deltaTime >= 0 ? lastTileCollisionTime - deltaTime : 0;
 	if (lastTileCollisionTime > 0) {
 		return false;
@@ -245,20 +283,29 @@ bool PongCircleComponent::handleCollision(float deltaTime) {
 
 	for (auto& component : tileComponents)
 	{
-		PongTileComponent* tileComponent = dynamic_cast<PongTileComponent*>(component);
+		auto tileComponent = dynamic_cast<PongTileComponent*>(component);
 		auto tileCollisionBox = tileComponent->getCollisionBox();
 		auto tileCollisionType = tileCollisionBox.checkCollision(&collisionBox);
-		if (tileCollisionType == tileComponent->topCollisionType) {
-			direction.y *= -1;
-			auto tileCenterX = tileCollisionBox.bottomLeftPoint.x + tileCollisionBox.width / 2;
-			auto circleCenterX = collisionBox.bottomLeftPoint.x + collisionBox.width / 2;
-			auto delta = tileCenterX - circleCenterX;
-			direction.x = -delta * 4;
-			lastTileCollisionTime = 1.0f;
-			speed = speedAfterHit;
-			this->game->addComponent(new PongCircleComponent());
-			return true;
+		if (tileCollisionType != tileComponent->topCollisionType) {
+			continue;
 		}
+
+		direction.y *= -1;
+		auto tileCenterX = tileCollisionBox.bottomLeftPoint.x + tileCollisionBox.width / 2;
+		auto circleCenterX = collisionBox.bottomLeftPoint.x + collisionBox.width / 2;
+		auto delta = tileCenterX - circleCenterX;
+		direction.x = -delta * 4;
+		lastTileCollisionTime = disableCollisionTime;
+		speed = speedAfterHit;
+
+		if (temporary_circle) {
+			game->removeComponent(this);
+		}
+		else {
+			addNewCircle();
+		}
+
+		return true;
 	}
 
 	return false;
@@ -290,6 +337,15 @@ void PongCircleComponent::updateIndeces() {
 	game->device->CreateBuffer(&indexBufDesc, &indexData, &indecesBuffer);
 }
 
+void PongCircleComponent::addNewCircle()
+{
+	auto newCircle = new PongCircleComponent(true);
+	newCircle->initialize(game);
+	auto direction = DirectX::XMFLOAT2(this->direction.x * -1, this->direction.y);
+	newCircle->setCircleData(x_offset, y_offset, speed / 2, direction);
+	game->addComponent(newCircle);
+}
+
 float PongCircleComponent::toPixelSize(float size, int screenSize, int pixel)
 {
 	return size * pixel / screenSize;
@@ -303,6 +359,29 @@ DirectX::XMFLOAT4 PongCircleComponent::toPixelSize(float x, float y, int pixel)
 std::string PongCircleComponent::getType()
 {
 	return "PongCircleComponent";
+}
+
+void PongCircleComponent::destroyResources()
+{
+	free(strides);
+	free(offsets);
+	vertexBuffer->Release();
+	indecesBuffer->Release();
+	constantBuffer->Release();
+	vertexShaderByteCode->Release();
+	vertexShader->Release();
+	pixelShaderByteCode->Release();
+	pixelShader->Release();
+	layout->Release();
+}
+
+void PongCircleComponent::setCircleData(float x_offset, float y_offset, float speed, DirectX::XMFLOAT2 direction)
+{
+	this->x_offset = x_offset;
+	this->y_offset = y_offset;
+	this->direction = direction;
+	this->speed = speed;
+	this->lastTileCollisionTime = disableCollisionTime;
 }
 
 void PongCircleComponent::reset(bool directionToTop) {

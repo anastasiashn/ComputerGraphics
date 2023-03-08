@@ -17,7 +17,12 @@ void GameComponent::draw()
 
 void GameComponent::initialize(Game* game)
 {
+    if (this->is_initialised) {
+        return;
+    }
+
     this->game = game;
+    this->is_initialised = true;
 }
 
 void GameComponent::reload()

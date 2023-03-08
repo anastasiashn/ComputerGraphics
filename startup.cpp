@@ -13,6 +13,6 @@ int main() {
     gameComponents.push_back(new ScoreComponent());
 
     Game game;
-    game.initialize(L"Test game", 500, 500, gameComponents);
+    game.initialize(L"Test game", 800, 800, gameComponents);
     game.run();
 }
