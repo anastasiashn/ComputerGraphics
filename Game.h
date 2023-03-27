@@ -10,13 +10,12 @@
 
 #include "GameComponent.h"
 #include "WindowContainer.h"
-#include "CollisionBox.h"
+#include "Camera.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
-#pragma comment(lib, "DirectXTK.lib")
 
 class Game : WindowContainer
 {
@@ -29,7 +28,10 @@ class Game : WindowContainer
         std::chrono::steady_clock::time_point startTime;
         IDXGISwapChain* swapChain;
         float totalTime;
-        ID3D11RasterizerState* rastState;
+        ID3D11Texture2D* depthStencilBuffer;
+        ID3D11DepthStencilView* depthStencilView;
+
+        Camera* camera;
 
         void initialize(
             LPCWSTR name,
@@ -39,7 +41,8 @@ class Game : WindowContainer
         void exit();
         void run();
         DisplayWin32 getDisplay();
-        CollisionType checkWindowCollision(CollisionBox* collisionBox);
+        Keyboard getKeyboard();
+        Mouse getMouse();
         std::vector<GameComponent*> getComponentsByType(std::string type);
         void addComponent(GameComponent* component);
         void removeComponent(GameComponent* component);
@@ -57,5 +60,5 @@ class Game : WindowContainer
         float updateInterval(int& frameCount);
         void endFrame();
         void draw();
-
+        void updateComponents();
 };

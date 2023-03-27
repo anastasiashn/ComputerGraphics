@@ -72,6 +72,18 @@ void DisplayWin32::initialize(WindowContainer* windowContainer, LPCWSTR applicat
 	SetFocus(this->hWnd);
 
 	ShowCursor(true);
+
+	RAWINPUTDEVICE Rid[1];
+
+	Rid[0].usUsagePage = 0x01;          // HID_USAGE_PAGE_GENERIC
+	Rid[0].usUsage = 0x02;              // HID_USAGE_GENERIC_MOUSE
+	Rid[0].dwFlags = 0;
+	Rid[0].hwndTarget = 0;
+
+	if (RegisterRawInputDevices(Rid, 1, sizeof(Rid[0])) == FALSE)
+	{
+		// Registration failed. Call GetLastError for the cause of the error
+	}
 }
 
 void DisplayWin32::initializeWc() {

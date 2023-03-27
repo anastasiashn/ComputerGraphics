@@ -10,6 +10,9 @@ void Game::initialize(
 {
 	this->components = components;
 	this->display.initialize(this, name, clientWidth, clientHeight);
+	this->mouse.initialize(&this->display);
+	this->camera = new Camera();
+	camera->AspectRatio = static_cast<float>(this->display.clientWidth) / static_cast<float>(this->display.clientHeight);
 
 	D3D_FEATURE_LEVEL featureLevel[] = { D3D_FEATURE_LEVEL_11_1 };
 
@@ -34,7 +37,7 @@ void Game::initialize(
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
 		nullptr,
-		D3D11_CREATE_DEVICE_DEBUG,
+		D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT,
 		featureLevel,
 		1,
 		D3D11_SDK_VERSION,
@@ -45,14 +48,23 @@ void Game::initialize(
 		&context);
 
 	createBackBuffer();
-	device->CreateRenderTargetView(backBuffer, nullptr, &renderView);
-	CD3D11_RASTERIZER_DESC rastDesc = {};
-	rastDesc.CullMode = D3D11_CULL_NONE;
-	rastDesc.FillMode = D3D11_FILL_SOLID;
 
-	device->CreateRasterizerState(&rastDesc, &rastState);
+	D3D11_TEXTURE2D_DESC depthStencilDesc;
 
-	context->RSSetState(rastState);
+	depthStencilDesc.Width = this->display.clientWidth;
+	depthStencilDesc.Height = this->display.clientHeight;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.ArraySize = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
+	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDesc.CPUAccessFlags = 0;
+	depthStencilDesc.MiscFlags = 0;
+
+	device->CreateTexture2D(&depthStencilDesc, nullptr, &depthStencilBuffer);
+	device->CreateDepthStencilView(depthStencilBuffer, nullptr, &depthStencilView);
 
 	for (auto& component : components)
 	{
@@ -64,6 +76,7 @@ void Game::initialize(
 void Game::createBackBuffer()
 {
 	swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
+	device->CreateRenderTargetView(backBuffer, nullptr, &renderView);
 }
 
 void Game::run()
@@ -79,20 +92,23 @@ void Game::run()
 		update(deltaTime);
 		draw();
 		endFrame();
-		if (!componentsToAdd.empty()) {
-			for (auto& component : componentsToAdd)
-			{
-				component->initialize(this);
-				components.insert(components.begin(), component);
-			}
-			componentsToAdd.clear();
-		}
+		updateComponents();
 	}
 }
 
 DisplayWin32 Game::getDisplay()
 {
 	return this->display;
+}
+
+Keyboard Game::getKeyboard()
+{
+	return this->keyboard;
+}
+
+Mouse Game::getMouse()
+{
+	return this->mouse;
 }
 
 void Game::messageHandler()
@@ -112,7 +128,6 @@ void Game::messageHandler()
 void Game::prepareFrame()
 {
 	context->ClearState();
-	context->RSSetState(rastState);
 
 	D3D11_VIEWPORT viewport = {};
 	viewport.Width = static_cast<float>(display.clientWidth);
@@ -128,6 +143,7 @@ void Game::prepareFrame()
 
 	float color[] = { 0, 0, 0, 0 };
 	context->ClearRenderTargetView(renderView, color);
+	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
 void Game::exit()
@@ -141,6 +157,14 @@ void Game::destroyResources()
 	{
 		component->destroyResources();
 	}
+
+	context->Release();
+	backBuffer->Release();
+	renderView->Release();
+	swapChain->Release();
+	device->Release();
+	depthStencilView->Release();
+	depthStencilBuffer->Release();
 }
 
 void Game::draw()
@@ -151,33 +175,26 @@ void Game::draw()
 	}
 }
 
-
-CollisionType Game::checkWindowCollision(CollisionBox* collisionBox)
+void Game::updateComponents()
 {
-	if (collisionBox->getRight().getMaxX() >= 1) {
-		return CollisionType::widowRight;
+	if (componentsToAdd.empty()) {
+		return;
 	}
 
-	if (collisionBox->getLeft().getMinX() <= -1) {
-		return CollisionType::windowLeft;
+	for (auto& component : componentsToAdd)
+	{
+		component->initialize(this);
+		components.insert(components.begin(), component);
 	}
-
-	if (collisionBox->getTop().getMaxY() >= 1) {
-		return CollisionType::windowTop;
-	}
-
-	if (collisionBox->getBottom().getMinY() <= -1) {
-		return CollisionType::windowBottom;
-	}
-
-	return CollisionType::none;
+	componentsToAdd.clear();
 }
 
 void Game::update(float deltaTime) {
 
+	camera->UpdateMatrix();
 	for (auto& component : components)
 	{
-		component->update(deltaTime, keyboard);
+		component->update(deltaTime);
 	}
 }
 

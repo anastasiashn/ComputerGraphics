@@ -29,12 +29,8 @@ void GameComponent::reload()
 {
 }
 
-void GameComponent::update(float deltaTime, Keyboard keyboard)
+void GameComponent::update(float deltaTime)
 {
-}
-
-std::vector<CollisionBox*> GameComponent::getCollisionBoxes() {
-    return std::vector<CollisionBox*>();
 }
 
 std::string GameComponent::getType() {

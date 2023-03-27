@@ -18,44 +18,11 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="CollisionBox.cpp" />
-    <ClCompile Include="CollisionLine.cpp" />
-    <ClCompile Include="DisplayWin32.cpp" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="GameComponent.cpp" />
-    <ClCompile Include="Keyboard.cpp" />
-    <ClCompile Include="KeyboardEvent.cpp" />
-    <ClCompile Include="PongCircleComponent.cpp" />
-    <ClCompile Include="PongTileComponent.cpp" />
-    <ClCompile Include="RectangleComponent.cpp" />
-    <ClCompile Include="ScoreComponent.cpp" />
-    <ClCompile Include="startup.cpp" />
-    <ClCompile Include="WindowContainer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="CollisionBox.h" />
-    <ClInclude Include="CollisionException.h" />
-    <ClInclude Include="CollisionLine.h" />
-    <ClInclude Include="CollisionType.h" />
-    <ClInclude Include="ConstantBuffer.h" />
-    <ClInclude Include="DisplayWin32.h" />
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="GameComponent.h" />
-    <ClInclude Include="Keyboard.h" />
-    <ClInclude Include="KeyboardEvent.h" />
-    <ClInclude Include="KeyboardEventType.h" />
-    <ClInclude Include="PongCircleComponent.h" />
-    <ClInclude Include="PongTileComponent.h" />
-    <ClInclude Include="RectangleComponent.h" />
-    <ClInclude Include="ScoreComponent.h" />
-    <ClInclude Include="WindowContainer.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{da2779ff-5fc7-4404-a994-4e7d1c469396}</ProjectGuid>
-    <RootNamespace>ComputerGraphics</RootNamespace>
+    <ProjectGuid>{9cdb9240-1693-4fb4-a30f-2ad0643dc10c}</ProjectGuid>
+    <RootNamespace>DirectX</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -104,19 +71,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)libs\x86\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)libs\x86\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)libs\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\Includes;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Includes;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)libs\x64\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -159,7 +126,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <FxCompile>
-      <EntryPointName>VSMain</EntryPointName>
+      <ShaderType>
+      </ShaderType>
+      <EntryPointName>PSMain</EntryPointName>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -178,6 +147,48 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CameraHandlerComponent.cpp" />
+    <ClCompile Include="RadialComponent.cpp" />
+    <ClCompile Include="Delegates.cpp" />
+    <ClCompile Include="DisplayWin32.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GameComponent.cpp" />
+    <ClCompile Include="Keyboard.cpp" />
+    <ClCompile Include="KeyboardEvent.cpp" />
+    <ClCompile Include="Mouse.cpp" />
+    <ClCompile Include="SimpleMath.cpp" />
+    <ClCompile Include="SphereComponent.cpp" />
+    <ClCompile Include="startup.cpp" />
+    <ClCompile Include="WindowContainer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="CameraHandlerComponent.h" />
+    <ClInclude Include="RadialComponent.h" />
+    <ClInclude Include="ConstantBuffer.h" />
+    <ClInclude Include="Delegates.h" />
+    <ClInclude Include="DisplayWin32.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="GameComponent.h" />
+    <ClInclude Include="Keyboard.h" />
+    <ClInclude Include="KeyboardEvent.h" />
+    <ClInclude Include="KeyboardEventType.h" />
+    <ClInclude Include="MouseKeys.h" />
+    <ClInclude Include="Mouse.h" />
+    <ClInclude Include="MouseButton.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SimpleMath.h" />
+    <ClInclude Include="SphereComponent.h" />
+    <ClInclude Include="WindowContainer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DirectX.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleMath.inl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
