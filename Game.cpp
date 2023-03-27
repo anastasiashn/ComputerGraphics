@@ -139,7 +139,7 @@ void Game::prepareFrame()
 
 	context->RSSetViewports(1, &viewport);
 
-	context->OMSetRenderTargets(1, &renderView, nullptr);
+	context->OMSetRenderTargets(1, &renderView, depthStencilView);
 
 	float color[] = { 0, 0, 0, 0 };
 	context->ClearRenderTargetView(renderView, color);

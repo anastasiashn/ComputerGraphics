@@ -53,7 +53,7 @@ int main() {
 	earthDesc.OrbitSpeed = 0.8f;
 	earthDesc.PrimaryColor = Vector4(0.0f, 0.0f, 0.5f, 1.0f);
 	earthDesc.SecondaryColor = Vector4(0.0f, 0.7f, 0.0f, 1.0f);
-	RadialComponent earth(venusDesc);
+	RadialComponent earth(earthDesc);
 	gameComponents.push_back(&earth);
 
 	RadialDesc moonDesc = {};
@@ -64,6 +64,18 @@ int main() {
 	moonDesc.OrbitSpeed = 1.8f;
 	RadialComponent moon(moonDesc);
 	gameComponents.push_back(&moon);
+
+	RadialDesc newDesc = {};
+	newDesc.SpinSpeed = 0.8f;
+	newDesc.Radius = 0.3f;
+	newDesc.OrbitAnchor = &venus;
+	newDesc.OrbitRadius = 2.0f;
+	newDesc.OrbitSpeed = 1.8f;
+	newDesc.PrimaryColor = Vector4(0.7f, 0.0f, 0.0f, 1.0f);
+	newDesc.SecondaryColor = Vector4(0.7f, 0.0f, 0.0f, 1.0f);
+	RadialComponent newsphere(newDesc);
+	gameComponents.push_back(&newsphere);
+
 
     Game game;
     game.initialize(L"Test game", 800, 800, gameComponents);
