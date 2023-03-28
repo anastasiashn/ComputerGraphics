@@ -46,7 +46,7 @@ int main() {
 	gameComponents.push_back(&venus);
 
 	RadialDesc earthDesc = {};
-	earthDesc.SpinSpeed = 0.8f;
+	earthDesc.SpinSpeed = 8.0f;
 	earthDesc.Radius = 1.0f;
 	earthDesc.OrbitAnchor = &sun;
 	earthDesc.OrbitRadius = 10.0f;
@@ -65,16 +65,7 @@ int main() {
 	RadialComponent moon(moonDesc);
 	gameComponents.push_back(&moon);
 
-	RadialDesc newDesc = {};
-	newDesc.SpinSpeed = 0.8f;
-	newDesc.Radius = 0.3f;
-	newDesc.OrbitAnchor = &venus;
-	newDesc.OrbitRadius = 2.0f;
-	newDesc.OrbitSpeed = 1.8f;
-	newDesc.PrimaryColor = Vector4(0.7f, 0.0f, 0.0f, 1.0f);
-	newDesc.SecondaryColor = Vector4(0.7f, 0.0f, 0.0f, 1.0f);
-	RadialComponent newsphere(newDesc);
-	gameComponents.push_back(&newsphere);
+
 
 
     Game game;
